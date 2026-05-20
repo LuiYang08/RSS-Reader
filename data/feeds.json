@@ -1,0 +1,88 @@
+{
+  "categories": [
+    {
+      "id": "international",
+      "name": "国际巨头",
+      "icon": "🌐"
+    },
+    {
+      "id": "developer",
+      "name": "开发者社区",
+      "icon": "🛠️"
+    }
+  ],
+  "feeds": [
+    {
+      "id": "openai",
+      "name": "OpenAI 博客",
+      "url": "https://openai.com/blog/rss.xml",
+      "category": "international",
+      "description": "OpenAI 官方博客与产品更新",
+      "last_fetched": "2026-05-15T08:12:21.741934+00:00",
+      "fetch_mode": "rss"
+    },
+    {
+      "id": "google_ai",
+      "name": "Google AI",
+      "url": "https://blog.google/technology/ai/rss/",
+      "category": "international",
+      "description": "Google AI 技术与发布动态",
+      "last_fetched": "2026-05-11T10:12:38.807957+00:00",
+      "fetch_mode": "rss"
+    },
+    {
+      "id": "claude_blog",
+      "name": "Claude 官方博客",
+      "url": "https://claude.com/blog",
+      "category": "international",
+      "description": "Claude 产品动态、最佳实践与团队案例",
+      "last_fetched": "2026-05-11T10:12:36.815534+00:00",
+      "fetch_mode": "claude_blog"
+    },
+    {
+      "id": "venturebeat_ai",
+      "name": "VentureBeat AI",
+      "url": "https://venturebeat.com/category/ai/feed/",
+      "category": "international",
+      "description": "海外 AI 行业新闻、融资与产品热点",
+      "last_fetched": "2026-05-12T10:08:42.576833+00:00",
+      "fetch_mode": "rss"
+    },
+    {
+      "id": "ai_news",
+      "name": "AI News",
+      "url": "https://www.artificialintelligence-news.com/feed/",
+      "category": "international",
+      "description": "全球 AI 产业、政策与应用热点",
+      "last_fetched": "2026-05-13T01:57:35.813390+00:00",
+      "fetch_mode": "rss"
+    },
+    {
+      "id": "github_ai_trending",
+      "name": "GitHub 每周 AI 趋势",
+      "url": "https://github.com/trending?since=weekly",
+      "category": "developer",
+      "description": "GitHub 每周 AI 热门仓库趋势",
+      "last_fetched": "2026-05-18T06:12:47.378916+00:00",
+      "fetch_mode": "github_trending_ai"
+    },
+    {
+      "id": "wuzao_ai_monthly",
+      "name": "无噪 30 日 AI 涨星榜",
+      "url": "https://www.wuzao.com/projects/trends/monthly/",
+      "category": "developer",
+      "description": "无噪 AI 项目 30 日涨星排行",
+      "last_fetched": "2026-05-18T06:12:37.770233+00:00",
+      "fetch_mode": "wuzao_trending_monthly"
+    },
+    {
+      "id": "huggingface_trending",
+      "name": "Hugging Face 模型趋势",
+      "url": "https://zernel.github.io/huggingface-trending-feed/feed.xml",
+      "category": "developer",
+      "description": "Hugging Face 热门模型趋势",
+      "last_fetched": "2026-05-18T06:12:25.412487+00:00",
+      "fetch_mode": "rss"
+    }
+  ]
+}

@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI RSS 阅读器</title>
+    <style>
+        /* ===== 主题变量定义 ===== */
+        :root {
+            --grid-unit: 1rem;
+            --border-radius-base: 0.5rem;
+        }
+
+        /* 深色主题（默认） */
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1f1f1f;
+            --bg-hover: #252525;
+            --bg-reader: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+            --border-strong: #333333;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --card-bg: #141414;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        /* 浅色主题 */
+        [data-theme="light"] {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --bg-hover: #e8e8e8;
+            --bg-reader: #ffffff;
+            --text-primary: #111111;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border: #e0e0e0;
+            --border-strong: #d0d0d0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --card-bg: #ffffff;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ===== 布局容器 ===== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 60px 1fr;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar main";
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            grid-area: header;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 10;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px 8px 36px;
+            color: var(--text-primary);
+            width: 300px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            width: 400px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        [data-theme="light"] .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .sun-icon {
+            display: none;
+        }
+
+        .btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-count {
+            margin-left: auto;
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .nav-item.active .nav-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        [data-theme="light"] .nav-item.active .nav-count {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            grid-area: main;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-primary);
+            transition: background-color 0.3s ease;
+        }
+
+        .articles-view {
+            height: 100%;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .view-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .view-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ===== 文章网格布局 ===== */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 22px;
+            padding-bottom: 40px;
+        }
+
+        @media (min-width: 1400px) {
+            .articles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .article-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-height: 260px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+        }
+
+        .article-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .article-card.unread {
+            border-left: 3px solid var(--accent);
+        }
+
+        .article-card.read {
+            opacity: 0.7;
+        }
+
+        .article-card.read .article-title {
+            color: var(--text-secondary);
+        }
+
+        .article-image-wrap {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+            border-right: 1px solid var(--border);
+            min-height: 100%;
+            overflow: hidden;
+        }
+
+        .article-image {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .article-image-placeholder {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 42px;
+            font-weight: 700;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 36%),
+                linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+        }
+
+        .article-body {
+            padding: 20px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .article-source {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .article-date {
+            color: var(--text-muted);
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .article-card:hover .article-actions {
+            opacity: 1;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .icon-btn.starred {
+            color: var(--warning);
+        }
+
+        .article-title {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.45;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .article-summary {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .article-open-hint {
+            margin-top: auto;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 640px) {
+            .article-card {
+                grid-template-columns: 1fr;
+            }
+
+            .article-image-wrap {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .article-image,
+            .article-image-placeholder {
+                min-height: 180px;
+                height: 180px;
+            }
+        }
+
+        /* ===== 阅读器 - 大幅度渐显动画 ===== */
+        .reader-overlay {
+            position: fixed;
+            top: 0;
+            left: 280px;
+            /* 侧边栏宽度 */
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.92);
+            transform-origin: center center;
+            transition:
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.4s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reader-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+
+        .reader-overlay.closing {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+
+        /* 阅读器头部 */
+        .reader-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .reader-title-section {
+            flex: 1;
+            margin-right: 16px;
+            min-width: 0;
+        }
+
+        .reader-source {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .reader-title {
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+
+        .reader-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* 阅读器工具栏 */
+        .reader-toolbar {
+            display: flex;
+            gap: 12px;
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* 阅读器内容区 */
+        .reader-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-reader);
+            transition: background-color 0.3s ease;
+        }
+
+        .reader-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* 阅读器加载状态 */
+        .reader-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary);
+        }
+
+        .reader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* ===== 滚动条样式 ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ===== 响应式调整 ===== */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 240px 1fr;
+            }
+
+            .reader-overlay {
+                left: 240px;
+            }
+
+            .search-box input,
+            .search-box input:focus {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 1fr;
+                grid-template-areas:
+                    "header"
+                    "main";
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                z-index: 100;
+                transition: left 0.3s;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reader-overlay {
+                left: 0;
+                top: 60px;
+            }
+        }
+
+        /* ===== 提示消息 ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+        }
+
+        /* ===== 错误页面 ===== */
+        .reader-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .reader-error h3 {
+            color: var(--danger);
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+
+        .reader-error p {
+            margin-bottom: 24px;
+            max-width: 400px;
+        }
+
+        .reader-error .btn {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">📡 AI RSS 阅读器</h2>
+            </div>
+            <div class="sidebar-content">
+                <div class="nav-section">
+                    <div class="nav-title">快速筛选</div>
+                    <div class="nav-item active" data-filter="all" onclick="filterArticles('all')">
+                        <span class="nav-icon">📰</span>
+                        <span>全部文章</span>
+                        <span class="nav-count" id="count-all">0</span>
+                    </div>
+                    <div class="nav-item" data-filter="unread" onclick="filterArticles('unread')">
+                        <span class="nav-icon">🔵</span>
+                        <span>未读文章</span>
+                        <span class="nav-count" id="count-unread">0</span>
+                    </div>
+                    <div class="nav-item" data-filter="starred" onclick="filterArticles('starred')">
+                        <span class="nav-icon">⭐</span>
+                        <span>收藏文章</span>
+                        <span class="nav-count" id="count-starred">0</span>
+                    </div>
+                </div>
+
+                <div class="nav-section" id="categories-section">
+                    <div class="nav-title">分类</div>
+                </div>
+
+                <div class="nav-section" id="feeds-section">
+                    <div class="nav-title">订阅源</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-left">
+                <h1>AI RSS Reader</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="搜索文章..." onkeyup="handleSearch(event)">
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                    <span class="sun-icon">☀️</span>
+                    <span class="moon-icon">🌙</span>
+                </button>
+                <button class="btn" onclick="refreshFeeds()">
+                    <span>🔄</span>
+                    <span>刷新</span>
+                </button>
+                <button class="btn btn-danger" onclick="clearAllArticles()">
+                    <span>🗑️</span>
+                    <span>清空全部</span>
+                </button>
+                <button class="btn btn-primary" onclick="markAllRead()">
+                    <span>✓</span>
+                    <span>全部标为已读</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="articles-view" id="articlesView">
+                <div class="view-header">
+                    <h2 class="view-title" id="viewTitle">全部文章</h2>
+                    <div class="view-actions">
+                        <button class="btn" onclick="changeLayout()">
+                            <span>⚙️</span>
+                            <span>布局</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="articles-grid" id="articlesGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 阅读器 - 在红框范围内大幅度渐显 -->
+    <div class="reader-overlay" id="readerOverlay">
+        <div class="reader-header">
+            <div class="reader-title-section">
+                <div class="reader-source" id="readerSource">来源</div>
+                <div class="reader-title" id="readerTitle">文章标题</div>
+            </div>
+            <div class="reader-actions">
+                <button class="btn" onclick="markCurrentRead()">
+                    <span>✓</span>
+                    <span>标为已读</span>
+                </button>
+                <button class="btn" onclick="toggleCurrentStar()" id="starBtn">
+                    <span>⭐</span>
+                    <span>收藏</span>
+                </button>
+                <button class="btn" onclick="openInNewTab()">
+                    <span>↗️</span>
+                    <span>新窗口</span>
+                </button>
+                <button class="btn" onclick="closeReader()" style="font-size: 18px; padding: 8px 12px;">
+                    <span>✕</span>
+                </button>
+            </div>
+        </div>
+        <div class="reader-toolbar">
+            <button class="btn" onclick="shareArticle()">
+                <span>🔗</span>
+                <span>复制链接</span>
+            </button>
+            <div style="flex: 1;"></div>
+            <span style="color: var(--text-muted); font-size: 13px;" id="readerMeta"></span>
+        </div>
+        <div class="reader-content" id="readerContent">
+            <div class="reader-loading" id="readerLoading">
+                <div class="reader-spinner"></div>
+                <span>正在加载文章...</span>
+            </div>
+            <iframe class="reader-iframe" id="readerIframe" style="display: none;"></iframe>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage">操作成功</span>
+    </div>
+
+    <script>
+        // 状态管理
+        let state = {
+            articles: [],
+            feeds: [],
+            categories: [],
+            currentFilter: 'all',
+            currentArticle: null,
+            searchQuery: '',
+            page: 1,
+            loading: false,
+            theme: localStorage.getItem('theme') || 'dark'
+        };
+
+        // 初始化主题
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', theme);
+            state.theme = theme;
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            state.theme = newTheme;
+
+            showToast(`已切换到${newTheme === 'dark' ? '深色' : '浅色'}主题`);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadFeeds();
+            loadArticles();
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeReader();
+                if (e.key === 'r' && e.ctrlKey) {
+                    e.preventDefault();
+                    refreshFeeds();
+                }
+                if (e.key === 't' && e.ctrlKey) {
+                    e.preventDefault();
+                    toggleTheme();
+                }
+            });
+        });
+
+        // 加载订阅源
+        async function loadFeeds() {
+            try {
+                const response = await fetch('/api/feeds');
+                const data = await response.json();
+                state.feeds = data.feeds || [];
+                state.categories = data.categories || [];
+                renderSidebar();
+            } catch (error) {
+                showToast('加载订阅源失败', 'error');
+            }
+        }
+
+        // 替换原有的 loadArticles 函数
+        async function loadArticles() {
+            if (state.loading) return;
+            state.loading = true;
+
+            try {
+                let url = `/api/articles?page=${state.page}&per_page=50`;
+
+                // 处理各种过滤条件
+                if (state.currentFilter === 'unread') {
+                    url += '&unread=true';
+                } else if (state.currentFilter === 'starred') {
+                    url += '&starred=true';
+                } else if (state.currentFilter.startsWith('category:')) {
+                    const categoryId = state.currentFilter.replace('category:', '');
+                    url += `&category=${encodeURIComponent(categoryId)}`;
+                } else if (state.currentFilter.startsWith('feed:')) {
+                    const feedId = state.currentFilter.replace('feed:', '');
+                    url += `&feed_id=${encodeURIComponent(feedId)}`;
+                }
+
+                if (state.searchQuery) {
+                    url += `&search=${encodeURIComponent(state.searchQuery)}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (state.page === 1) {
+                    state.articles = data.articles || [];
+                } else {
+                    state.articles.push(...(data.articles || []));
+                }
+
+                updateCounts();
+                renderArticles();
+            } catch (error) {
+                showToast('加载文章失败', 'error');
+            } finally {
+                state.loading = false;
+            }
+        }
+        <!-- --- 在 index.html 的 <script> 标签内找到并替换 renderSidebar 函数 --- -->
+
+        // 渲染侧边栏 (修复计数和分类显示)
+        async function renderSidebar() {
+            const catSection = document.getElementById('categories-section');
+            const feedsSection = document.getElementById('feeds-section');
+
+            let stats = { categories: [], feeds: [] };
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                stats = data;
+            } catch (e) { console.error("获取统计失败", e); }
+
+            // 渲染分类
+            let catHtml = '<div class="nav-title">分类</div>';
+            stats.categories.forEach(cat => {
+                const isActive = state.currentFilter === 'category:' + cat.id;
+                catHtml += ` 
+        <div class="nav-item ${isActive ? 'active' : ''}" onclick="filterByCategory('${cat.id}')" title="点击筛选该分类">
+            <span class="nav-icon">${cat.icon}</span>
+            <span>${cat.name}</span>
+            <span class="nav-count">${cat.unread}</span>
+        </div> `;
+            });
+            catSection.innerHTML = catHtml;
+
+            // 渲染订阅源
+            let feedsHtml = '<div class="nav-title">订阅源</div>';
+            stats.feeds.forEach(feed => {
+                const isActive = state.currentFilter === 'feed:' + feed.id;
+                feedsHtml += ` 
+        <div class="nav-item ${isActive ? 'active' : ''}" onclick="filterByFeed('${feed.id}')" title="点击筛选该订阅源" style="font-size: 13px;">
+            <span style="margin-left: 8px;">${feed.name}</span>
+            <span class="nav-count">${feed.unread}</span>
+        </div> `;
+            });
+            feedsSection.innerHTML = feedsHtml;
+        }
+
+        // --- 在 script 标签内新增一个函数 (用于显示网址) ---
+        function showFeedUrl(name, url) {
+            if (url) {
+                alert(`订阅源: ${name}\n地址: ${url}`);
+            }
+        }
+
+        // 渲染文章列表
+        function renderArticles() {
+            const grid = document.getElementById('articlesGrid');
+
+            if (state.articles.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-title">暂无文章</div>
+                        <p>点击刷新按钮获取最新内容</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = state.articles.map(article => `
+                <article class="article-card ${article.read ? 'read' : 'unread'}" 
+                         onclick="openArticle('${article.id}')"
+                         data-id="${article.id}">
+                    <div class="article-image-wrap">
+                        ${articleImageHtml(article)}
+                    </div>
+                    <div class="article-body">
+                        <div class="article-header">
+                            <div class="article-meta">
+                                <span class="article-source">${article.feed_name || '未知来源'}</span>
+                                <span class="article-date">${formatDate(article.published)}</span>
+                            </div>
+                            <div class="article-actions" onclick="event.stopPropagation()">
+                                <button class="icon-btn ${article.starred ? 'starred' : ''}" 
+                                        onclick="toggleStar('${article.id}', event)"
+                                        title="${article.starred ? '取消收藏' : '收藏'}">
+                                    ${article.starred ? '★' : '☆'}
+                                </button>
+                            </div>
+                        </div>
+                        <h3 class="article-title">${escapeHtml(article.title)}</h3>
+                        <p class="article-summary">${escapeHtml(article.summary) || '暂无摘要'}</p>
+                        <span class="article-open-hint">新窗口打开 ↗</span>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function articleImageHtml(article) {
+            if (article.image_url) {
+                return `<img class="article-image" src="${escapeAttribute(article.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(createArticlePlaceholder())">`;
+            }
+            return `<div class="article-image-placeholder">${sourceInitial(article.feed_name || article.title)}</div>`;
+        }
+
+        function sourceInitial(value) {
+            const text = String(value || 'AI').trim();
+            return escapeHtml(text.slice(0, 1).toUpperCase() || 'A');
+        }
+
+        function createArticlePlaceholder(label) {
+            const node = document.createElement('div');
+            node.className = 'article-image-placeholder';
+            node.textContent = String(label || 'A').trim().slice(0, 1).toUpperCase() || 'A';
+            return node;
+        }
+
+        // 打开文章
+        async function openArticle(articleId) {
+            const article = state.articles.find(a => a.id === articleId);
+            if (!article) return;
+
+            state.currentArticle = article;
+            window.open(article.link, '_blank', 'noopener,noreferrer');
+
+            // 标记为已读
+            if (!article.read) {
+                await markAsRead(articleId, { silent: true });
+            }
+        }
+
+        // 关闭阅读器 - 渐隐动画
+        function closeReader() {
+            const overlay = document.getElementById('readerOverlay');
+            overlay.classList.remove('active');
+            overlay.classList.add('closing');
+
+            document.body.style.overflow = '';
+
+            // 延迟清空 iframe
+            setTimeout(() => {
+                document.getElementById('readerIframe').src = 'about:blank';
+                overlay.classList.remove('closing');
+                // 恢复加载界面以备下次使用
+                document.getElementById('readerContent').innerHTML = `
+                    <div class="reader-loading" id="readerLoading">
+                        <div class="reader-spinner"></div>
+                        <span>正在加载文章...</span>
+                    </div>
+                    <iframe class="reader-iframe" id="readerIframe" style="display: none;"></iframe>
+                `;
+            }, 400);
+        }
+
+        // 在新标签页打开
+        function openInNewTab() {
+            if (state.currentArticle) {
+                window.open(state.currentArticle.link, '_blank');
+            }
+        }
+
+        // 标记当前文章已读
+        async function markCurrentRead() {
+            if (state.currentArticle) {
+                await markAsRead(state.currentArticle.id);
+                showToast('已标记为已读');
+            }
+        }
+
+        // 切换当前文章收藏
+        async function toggleCurrentStar() {
+            if (state.currentArticle) {
+                await toggleStar(state.currentArticle.id);
+                const article = state.articles.find(a => a.id === state.currentArticle.id);
+                document.getElementById('starBtn').innerHTML = `
+                    <span>${article.starred ? '★' : '☆'}</span>
+                    <span>${article.starred ? '已收藏' : '收藏'}</span>
+                `;
+            }
+        }
+
+        // 筛选功能
+        function filterArticles(filter) {
+            state.currentFilter = filter;
+            state.page = 1;
+            state.searchQuery = '';
+            document.getElementById('searchInput').value = '';
+
+            // 更新导航状态
+            document.querySelectorAll('.nav-item[data-filter]').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.filter === filter) {
+                    item.classList.add('active');
+                }
+            });
+
+            // 重新渲染侧边栏以清除分类/订阅源的激活状态
+            renderSidebar();
+
+            const titles = {
+                'all': '全部文章',
+                'unread': '未读文章',
+                'starred': '收藏文章'
+            };
+            document.getElementById('viewTitle').textContent = titles[filter];
+
+            loadArticles();
+        }
+
+        function filterByCategory(categoryId) {
+            state.currentFilter = 'category:' + categoryId;
+            state.page = 1;
+            state.searchQuery = '';
+            document.getElementById('searchInput').value = '';
+
+            // 更新标题
+            const category = state.categories.find(c => c.id === categoryId);
+            document.getElementById('viewTitle').textContent = category ? category.name : '分类';
+
+            // 更新导航激活状态
+            updateNavActiveState('category:' + categoryId);
+
+            loadArticles();
+        }
+
+        function filterByFeed(feedId) {
+            state.currentFilter = 'feed:' + feedId;
+            state.page = 1;
+            state.searchQuery = '';
+            document.getElementById('searchInput').value = '';
+
+            // 更新标题
+            const feed = state.feeds.find(f => f.id === feedId);
+            document.getElementById('viewTitle').textContent = feed ? feed.name : '订阅源';
+
+            // 更新导航激活状态
+            updateNavActiveState('feed:' + feedId);
+
+            loadArticles();
+        }
+
+        // 新增：统一更新导航激活状态
+        function updateNavActiveState(filterValue) {
+            // 清除所有激活状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 根据 filter 值找到对应的元素并激活
+            if (filterValue === 'all') {
+                document.querySelector('[data-filter="all"]')?.classList.add('active');
+            } else if (filterValue === 'unread') {
+                document.querySelector('[data-filter="unread"]')?.classList.add('active');
+            } else if (filterValue === 'starred') {
+                document.querySelector('[data-filter="starred"]')?.classList.add('active');
+            }
+            // 分类和订阅源的激活状态通过 onclick 动态处理，这里不需要额外操作
+            // 因为每次 renderSidebar 都会重新生成 DOM
+        }
+
+        // 搜索
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                state.searchQuery = event.target.value;
+                state.page = 1;
+                loadArticles();
+            }
+        }
+
+        // API 操作
+        async function markAsRead(articleId) {
+            try {
+                await fetch(`/api/articles/${articleId}/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ read: true })
+                });
+
+                const article = state.articles.find(a => a.id === articleId);
+                if (article) {
+                    article.read = true;
+                    renderArticles();
+                    updateCounts();
+                }
+            } catch (error) {
+                console.error('标记已读失败:', error);
+            }
+        }
+
+        async function toggleStar(articleId, event) {
+            if (event) event.stopPropagation();
+
+            const article = state.articles.find(a => a.id === articleId);
+            if (!article) return;
+
+            try {
+                const response = await fetch(`/api/articles/${articleId}/star`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ starred: !article.starred })
+                });
+
+                article.starred = !article.starred;
+                renderArticles();
+                updateCounts();
+                showToast(article.starred ? '已收藏' : '已取消收藏');
+            } catch (error) {
+                showToast('操作失败', 'error');
+            }
+        }
+
+        async function markAllRead() {
+            try {
+                await fetch('/api/articles/mark-all-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                state.articles.forEach(a => a.read = true);
+                renderArticles();
+                updateCounts();
+                showToast('全部标记为已读');
+            } catch (error) {
+                showToast('操作失败', 'error');
+            }
+        }
+
+        async function refreshFeeds() {
+            showToast('正在刷新...');
+            try {
+                const response = await fetch('/api/feeds/refresh', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                showToast(`新增 ${data.new_articles || 0} 篇文章`);
+                loadArticles();
+            } catch (error) {
+                showToast('刷新失败', 'error');
+            }
+        }
+
+        // 辅助函数
+        function updateCounts() {
+            const all = state.articles.length;
+            const unread = state.articles.filter(a => !a.read).length;
+            const starred = state.articles.filter(a => a.starred).length;
+
+            document.getElementById('count-all').textContent = all;
+            document.getElementById('count-unread').textContent = unread;
+            document.getElementById('count-starred').textContent = starred;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+            if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`;
+
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeAttribute(text) {
+            return escapeHtml(text).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+
+            msg.textContent = message;
+            icon.textContent = type === 'success' ? '✓' : '✕';
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function shareArticle() {
+            if (state.currentArticle) {
+                navigator.clipboard.writeText(state.currentArticle.link);
+                showToast('链接已复制到剪贴板');
+            }
+        }
+
+        function changeLayout() {
+            showToast('布局切换功能开发中...');
+        }
+
+        // 无限滚动
+        document.getElementById('articlesView').addEventListener('scroll', (e) => {
+            const { scrollTop, scrollHeight, clientHeight } = e.target;
+            if (scrollTop + clientHeight >= scrollHeight - 100 && !state.loading) {
+                state.page++;
+                loadArticles();
+            }
+        });
+    </script>
+    <script>
+        state = {
+            ...state,
+            stats: {
+                base: { total: 0, unread: 0, starred: 0 },
+                categories: [],
+                feeds: []
+            },
+            perPage: 50,
+            totalAvailable: 0
+        };
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, options);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.error || `Request failed: ${response.status}`);
+            }
+            return data;
+        }
+
+        function syncStats(stats) {
+            if (!stats) return;
+
+            state.stats = {
+                base: stats.base || { total: 0, unread: 0, starred: 0 },
+                categories: stats.categories || [],
+                feeds: stats.feeds || []
+            };
+
+            if (state.stats.categories.length) {
+                state.categories = state.stats.categories.map(({ id, name, icon }) => ({ id, name, icon }));
+            }
+            if (state.stats.feeds.length) {
+                state.feeds = state.stats.feeds.map(({ id, name, url, category, description }) => ({
+                    id,
+                    name,
+                    url,
+                    category,
+                    description
+                }));
+            }
+
+            updateCounts();
+            renderSidebar();
+        }
+
+        function updateCounts() {
+            const base = state.stats.base || {};
+            document.getElementById('count-all').textContent = base.total || 0;
+            document.getElementById('count-unread').textContent = base.unread || 0;
+            document.getElementById('count-starred').textContent = base.starred || 0;
+        }
+
+        function buildArticleUrl() {
+            const params = new URLSearchParams({
+                page: String(state.page),
+                per_page: String(state.perPage || 50)
+            });
+
+            if (state.currentFilter === 'unread') {
+                params.set('unread', 'true');
+            } else if (state.currentFilter === 'starred') {
+                params.set('starred', 'true');
+            } else if (state.currentFilter.startsWith('category:')) {
+                params.set('category', state.currentFilter.replace('category:', ''));
+            } else if (state.currentFilter.startsWith('feed:')) {
+                params.set('feed_id', state.currentFilter.replace('feed:', ''));
+            }
+
+            if (state.searchQuery) {
+                params.set('search', state.searchQuery);
+            }
+
+            return `/api/articles?${params.toString()}`;
+        }
+
+        function getScopePayload() {
+            const payload = {};
+
+            if (state.currentFilter === 'unread') {
+                payload.unread = 'true';
+            } else if (state.currentFilter === 'starred') {
+                payload.starred = 'true';
+            } else if (state.currentFilter.startsWith('category:')) {
+                payload.category = state.currentFilter.replace('category:', '');
+            } else if (state.currentFilter.startsWith('feed:')) {
+                payload.feed_id = state.currentFilter.replace('feed:', '');
+            }
+
+            if (state.searchQuery) {
+                payload.search = state.searchQuery;
+            }
+
+            return payload;
+        }
+
+        function setViewTitle() {
+            const titles = {
+                all: '全部文章',
+                unread: '未读文章',
+                starred: '收藏文章'
+            };
+
+            if (titles[state.currentFilter]) {
+                document.getElementById('viewTitle').textContent = titles[state.currentFilter];
+                return;
+            }
+
+            if (state.currentFilter.startsWith('category:')) {
+                const categoryId = state.currentFilter.replace('category:', '');
+                const category = state.categories.find(item => item.id === categoryId);
+                document.getElementById('viewTitle').textContent = category ? category.name : '分类';
+                return;
+            }
+
+            if (state.currentFilter.startsWith('feed:')) {
+                const feedId = state.currentFilter.replace('feed:', '');
+                const feed = state.feeds.find(item => item.id === feedId);
+                document.getElementById('viewTitle').textContent = feed ? feed.name : '订阅源';
+                return;
+            }
+
+            document.getElementById('viewTitle').textContent = '全部文章';
+        }
+
+        function renderSidebar() {
+            const catSection = document.getElementById('categories-section');
+            const feedsSection = document.getElementById('feeds-section');
+            const categoryStats = new Map((state.stats.categories || []).map(item => [item.id, item]));
+            const feedStats = new Map((state.stats.feeds || []).map(item => [item.id, item]));
+
+            let catHtml = '<div class="nav-title">分类</div>';
+            (state.categories || []).forEach(category => {
+                const stats = categoryStats.get(category.id) || { unread: 0, total: 0 };
+                const active = state.currentFilter === `category:${category.id}` ? 'active' : '';
+                catHtml += `
+                    <div class="nav-item ${active}" onclick="filterByCategory('${category.id}')" title="${escapeHtml(category.name)}">
+                        <span class="nav-icon">${category.icon || '📌'}</span>
+                        <span>${escapeHtml(category.name)}</span>
+                        <span class="nav-count">${stats.unread || 0}</span>
+                    </div>
+                `;
+            });
+            catSection.innerHTML = catHtml;
+
+            let feedsHtml = '<div class="nav-title">订阅源</div>';
+            (state.feeds || []).forEach(feed => {
+                const stats = feedStats.get(feed.id) || { unread: 0, total: 0 };
+                const active = state.currentFilter === `feed:${feed.id}` ? 'active' : '';
+                feedsHtml += `
+                    <div class="nav-item ${active}" onclick="filterByFeed('${feed.id}')" title="${escapeHtml(feed.url || feed.name)}" style="font-size: 13px;">
+                        <span style="margin-left: 8px;">${escapeHtml(feed.name)}</span>
+                        <span class="nav-count">${stats.unread || 0}</span>
+                    </div>
+                `;
+            });
+            feedsSection.innerHTML = feedsHtml;
+
+            document.querySelectorAll('.nav-item[data-filter]').forEach(item => {
+                item.classList.toggle('active', item.dataset.filter === state.currentFilter);
+            });
+        }
+
+        async function loadFeeds() {
+            try {
+                const data = await fetchJson('/api/feeds');
+                state.feeds = data.feeds || [];
+                state.categories = data.categories || [];
+                renderSidebar();
+            } catch (error) {
+                showToast('加载订阅源失败', 'error');
+            }
+        }
+
+        async function loadArticles(options = {}) {
+            const reset = !!options.reset;
+            if (state.loading) return;
+            if (reset) {
+                state.page = 1;
+            }
+            if (!reset && state.totalAvailable > 0 && state.articles.length >= state.totalAvailable) {
+                return;
+            }
+
+            state.loading = true;
+
+            try {
+                const data = await fetchJson(buildArticleUrl());
+                state.totalAvailable = data.total || 0;
+                syncStats(data.stats);
+
+                if (state.page === 1) {
+                    state.articles = data.articles || [];
+                } else {
+                    const existingIds = new Set(state.articles.map(article => article.id));
+                    const extra = (data.articles || []).filter(article => !existingIds.has(article.id));
+                    state.articles.push(...extra);
+                }
+
+                renderArticles();
+            } catch (error) {
+                showToast('加载文章失败', 'error');
+            } finally {
+                state.loading = false;
+            }
+        }
+
+        function setFilter(filterValue) {
+            state.currentFilter = filterValue;
+            state.searchQuery = '';
+            state.page = 1;
+            document.getElementById('searchInput').value = '';
+            setViewTitle();
+            renderSidebar();
+            loadArticles({ reset: true });
+        }
+
+        function filterArticles(filterValue) {
+            setFilter(filterValue);
+        }
+
+        function filterByCategory(categoryId) {
+            setFilter(`category:${categoryId}`);
+        }
+
+        function filterByFeed(feedId) {
+            setFilter(`feed:${feedId}`);
+        }
+
+        function handleSearch(event) {
+            if (event.key !== 'Enter') return;
+            state.searchQuery = event.target.value.trim();
+            state.page = 1;
+            loadArticles({ reset: true });
+        }
+
+        async function markAsRead(articleId, options = {}) {
+            const silent = !!options.silent;
+            try {
+                const data = await fetchJson(`/api/articles/${articleId}/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ read: true })
+                });
+
+                const article = state.articles.find(item => item.id === articleId);
+                if (article) {
+                    article.read = true;
+                }
+                if (state.currentArticle && state.currentArticle.id === articleId) {
+                    state.currentArticle.read = true;
+                }
+
+                syncStats(data.stats);
+
+                if (state.currentFilter === 'unread') {
+                    state.articles = state.articles.filter(item => item.id !== articleId);
+                }
+
+                renderArticles();
+
+                if (!silent) {
+                    showToast('已标记为已读');
+                }
+            } catch (error) {
+                if (!silent) {
+                    showToast('标记已读失败', 'error');
+                }
+            }
+        }
+
+        async function toggleStar(articleId, event) {
+            if (event) event.stopPropagation();
+
+            const article = state.articles.find(item => item.id === articleId);
+            if (!article) return;
+
+            try {
+                const nextStarred = !article.starred;
+                const data = await fetchJson(`/api/articles/${articleId}/star`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ starred: nextStarred })
+                });
+
+                article.starred = nextStarred;
+                if (state.currentArticle && state.currentArticle.id === articleId) {
+                    state.currentArticle.starred = nextStarred;
+                }
+
+                syncStats(data.stats);
+
+                if (state.currentFilter === 'starred' && !nextStarred) {
+                    state.articles = state.articles.filter(item => item.id !== articleId);
+                }
+
+                renderArticles();
+                showToast(nextStarred ? '已收藏' : '已取消收藏');
+            } catch (error) {
+                showToast('操作失败', 'error');
+            }
+        }
+
+        async function markAllRead() {
+            try {
+                const data = await fetchJson('/api/articles/mark-all-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getScopePayload())
+                });
+
+                if (!data.marked) {
+                    showToast('当前范围没有未读文章');
+                    return;
+                }
+
+                if (state.currentFilter === 'unread') {
+                    state.articles = [];
+                } else {
+                    state.articles = state.articles.map(article => ({ ...article, read: true }));
+                }
+
+                syncStats(data.stats);
+                await loadArticles({ reset: true });
+                showToast(`已标记 ${data.marked} 篇文章为已读`);
+            } catch (error) {
+                showToast('批量标记失败', 'error');
+            }
+        }
+
+        async function clearAllArticles() {
+            const confirmed = window.confirm('确定清空所有文章和已读/收藏状态吗？此操作不可撤销。');
+            if (!confirmed) return;
+
+            try {
+                const data = await fetchJson('/api/articles/clear', {
+                    method: 'POST'
+                });
+
+                closeReader();
+                state.articles = [];
+                state.currentArticle = null;
+                state.page = 1;
+                state.totalAvailable = 0;
+                syncStats(data.stats);
+                renderArticles();
+                showToast(`已清空 ${data.cleared_articles || 0} 篇文章`);
+            } catch (error) {
+                showToast('清空失败', 'error');
+            }
+        }
+
+        async function refreshFeeds() {
+            showToast('正在刷新...');
+            try {
+                const payload = {};
+                if (state.currentFilter.startsWith('feed:')) {
+                    payload.feed_id = state.currentFilter.replace('feed:', '');
+                }
+
+                const data = await fetchJson('/api/feeds/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                syncStats(data.stats);
+                await loadArticles({ reset: true });
+
+                const errorSuffix = data.errors && data.errors.length ? `，${data.errors.length} 个源抓取失败` : '';
+                showToast(`新增 ${data.new_articles || 0} 篇文章${errorSuffix}`);
+            } catch (error) {
+                showToast('刷新失败', 'error');
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            if (Number.isNaN(date.getTime())) return '未知时间';
+
+            const diff = Date.now() - date.getTime();
+            if (diff < 60 * 1000) return '刚刚';
+            if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))} 分钟前`;
+            if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))} 小时前`;
+            if (diff < 7 * 24 * 60 * 60 * 1000) return `${Math.floor(diff / (24 * 60 * 60 * 1000))} 天前`;
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
+        function escapeAttribute(text) {
+            return escapeHtml(text).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+
+            msg.textContent = message;
+            icon.textContent = type === 'success' ? '✓' : '⚠';
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFeeds();
+            setViewTitle();
+            await loadArticles({ reset: true });
+        });
+
+        document.getElementById('articlesView').addEventListener('scroll', event => {
+            const { scrollTop, scrollHeight, clientHeight } = event.target;
+            const nearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+            if (!nearBottom || state.loading) return;
+            if (state.totalAvailable > 0 && state.articles.length >= state.totalAvailable) return;
+            state.page += 1;
+            loadArticles();
+        });
+    </script>
+</body>
+
+</html>
