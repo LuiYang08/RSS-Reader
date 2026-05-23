@@ -29,227 +29,23 @@ HEADERS = {
     "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
 }
 
-CATEGORY_DEFINITIONS = {
-    "international": {"id": "international", "name": "国际巨头", "icon": "🌐"},
-    "academic": {"id": "academic", "name": "学术速递", "icon": "📚"},
-    "domestic": {"id": "domestic", "name": "国内媒体", "icon": "📰"},
-    "developer": {"id": "developer", "name": "开发者社区", "icon": "🛠️"},
-}
 
-CATEGORY_LABEL_ALIASES = {
-    "国际巨头": "international",
-    "学术速递": "academic",
-    "国内媒体": "domestic",
-    "开发者社区": "developer",
-}
-
-STANDARD_FEEDS = [
-    {
-        "id": "openai",
-        "name": "OpenAI 博客",
-        "url": "https://openai.com/blog/rss.xml",
-        "category": "international",
-        "description": "OpenAI 官方博客与产品更新",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "deepmind",
-        "name": "Google DeepMind",
-        "url": "https://deepmind.google/blog/rss.xml",
-        "category": "international",
-        "description": "DeepMind 前沿研究与产品动态",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "google_ai",
-        "name": "Google AI",
-        "url": "https://blog.google/technology/ai/rss/",
-        "category": "international",
-        "description": "Google AI 技术与发布动态",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "claude_blog",
-        "name": "Claude 官方博客",
-        "url": "https://claude.com/blog",
-        "category": "international",
-        "description": "Claude 产品动态、最佳实践与团队案例",
-        "fetch_mode": "claude_blog",
-    },
-    {
-        "id": "arxiv_ml",
-        "name": "arXiv 机器学习",
-        "url": "https://rss.arxiv.org/rss/cs.LG",
-        "category": "academic",
-        "description": "arXiv 机器学习方向最新论文",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "jiqizhixin",
-        "name": "机器之心",
-        "url": "https://www.jiqizhixin.com/rss",
-        "category": "domestic",
-        "description": "国内 AI 产业与技术动态",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "qbitai",
-        "name": "量子位",
-        "url": "https://www.qbitai.com/feed",
-        "category": "domestic",
-        "description": "大模型、自动驾驶与 AI 行业报道",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "xinzhiyuan",
-        "name": "新智元",
-        "url": "https://www.xinzhiyuan.com/rss",
-        "category": "domestic",
-        "description": "AI 产业深度报道",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "juejin_ai",
-        "name": "掘金 AI 频道",
-        "url": "https://juejin.cn/feed/tag/AI",
-        "category": "developer",
-        "description": "AI 技术实践与开源项目",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "github_ai_trending",
-        "name": "GitHub 每周 AI 趋势",
-        "url": "https://github.com/trending?since=weekly",
-        "category": "developer",
-        "description": "GitHub 每周 AI 热门仓库趋势",
-        "fetch_mode": "github_trending_ai",
-    },
-    {
-        "id": "wuzao_ai_monthly",
-        "name": "无噪 30 日 AI 涨星榜",
-        "url": "https://www.wuzao.com/projects/trends/monthly/",
-        "category": "developer",
-        "description": "无噪 AI 项目 30 日涨星排行",
-        "fetch_mode": "wuzao_trending_monthly",
-    },
-    {
-        "id": "huggingface_trending",
-        "name": "Hugging Face 模型趋势",
-        "url": "https://zernel.github.io/huggingface-trending-feed/feed.xml",
-        "category": "developer",
-        "description": "Hugging Face 热门模型趋势",
-        "fetch_mode": "rss",
-    },
-]
 
 CATEGORY_DEFINITIONS = {
     "international": {"id": "international", "name": "国际巨头", "icon": "🌐"},
     "academic": {"id": "academic", "name": "学术速递", "icon": "📚"},
     "developer": {"id": "developer", "name": "开发者社区", "icon": "🛠️"},
+    "ai_news": {"id": "ai_news", "name": "国内AI资讯", "icon": "🇨🇳"},
+    "github": {"id": "github", "name": "GitHub论坛热点", "icon": "🐙"},
 }
 
 CATEGORY_LABEL_ALIASES = {
     "国际巨头": "international",
     "学术速递": "academic",
     "开发者社区": "developer",
+    "国内AI资讯": "ai_news",
+    "GitHub论坛热点": "github",
 }
-
-STANDARD_FEEDS = [
-    {
-        "id": "openai",
-        "name": "OpenAI 博客",
-        "url": "https://openai.com/blog/rss.xml",
-        "category": "international",
-        "description": "OpenAI 官方博客与产品更新",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "google_ai",
-        "name": "Google AI",
-        "url": "https://blog.google/technology/ai/rss/",
-        "category": "international",
-        "description": "Google AI 技术与发布动态",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "claude_blog",
-        "name": "Claude 官方博客",
-        "url": "https://claude.com/blog",
-        "category": "international",
-        "description": "Claude 产品动态、最佳实践与团队案例",
-        "fetch_mode": "claude_blog",
-    },
-    {
-        "id": "venturebeat_ai",
-        "name": "VentureBeat AI",
-        "url": "https://venturebeat.com/category/ai/feed/",
-        "category": "international",
-        "description": "海外 AI 行业新闻、融资与产品热点",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "ai_news",
-        "name": "AI News",
-        "url": "https://www.artificialintelligence-news.com/feed/",
-        "category": "international",
-        "description": "全球 AI 产业、政策与应用热点",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "arxiv_ml",
-        "name": "arXiv 机器学习",
-        "url": "https://rss.arxiv.org/rss/cs.LG",
-        "category": "academic",
-        "description": "arXiv 机器学习方向最新论文",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "juejin_ai",
-        "name": "掘金 AI 频道",
-        "url": "https://juejin.cn/feed/tag/AI",
-        "category": "developer",
-        "description": "AI 技术实践与开源项目",
-        "fetch_mode": "rss",
-    },
-    {
-        "id": "github_ai_trending",
-        "name": "GitHub 每周 AI 趋势",
-        "url": "https://github.com/trending?since=weekly",
-        "category": "developer",
-        "description": "GitHub 每周 AI 热门仓库趋势",
-        "fetch_mode": "github_trending_ai",
-    },
-    {
-        "id": "wuzao_ai_monthly",
-        "name": "无噪 30 日 AI 涨星榜",
-        "url": "https://www.wuzao.com/projects/trends/monthly/",
-        "category": "developer",
-        "description": "无噪 AI 项目 30 日涨星排行",
-        "fetch_mode": "wuzao_trending_monthly",
-    },
-    {
-        "id": "huggingface_trending",
-        "name": "Hugging Face 模型趋势",
-        "url": "https://zernel.github.io/huggingface-trending-feed/feed.xml",
-        "category": "developer",
-        "description": "Hugging Face 热门模型趋势",
-        "fetch_mode": "rss",
-    },
-]
-
-STANDARD_FEEDS_BY_ID = {feed["id"]: feed for feed in STANDARD_FEEDS}
-STANDARD_FEED_IDS_BY_NAME = {feed["name"]: feed["id"] for feed in STANDARD_FEEDS}
-STANDARD_FEED_REPLACEMENTS = {
-    "arxiv_ai": "claude_blog",
-}
-DISABLED_FEED_IDS = {"deepmind", "jiqizhixin", "qbitai", "xinzhiyuan"}
-DISABLED_CATEGORY_IDS = {"domestic"}
-DISABLED_FEED_URL_KEYWORDS = (
-    "deepmind.google/blog",
-    "jiqizhixin.com/rss",
-    "qbitai.com/feed",
-    "xinzhiyuan.com/rss",
-)
 
 AI_KEYWORDS = [
     " ai ",
@@ -452,17 +248,6 @@ def clear_runtime_data():
     return cleared_articles, cleared_state
 
 
-def resolve_category_id(label):
-    normalized = clean_text(label).lstrip("🌐📚📰🛠️").strip()
-    if normalized in CATEGORY_LABEL_ALIASES:
-        return CATEGORY_LABEL_ALIASES[normalized]
-    return None
-
-
-def slugify_feed_name(name):
-    slug = re.sub(r"[^\w]+", "_", clean_text(name).lower()).strip("_")
-    return slug or f"feed_{hashlib.md5(name.encode('utf-8')).hexdigest()[:8]}"
-
 
 def build_categories(feed_category_ids):
     categories = []
@@ -476,84 +261,49 @@ def build_categories(feed_category_ids):
 
 
 def init_feeds_from_source():
+    """从 SOURCE_FILE 创建 feeds.json，若文件不存在则创建空结构。"""
     feeds = []
 
     if SOURCE_FILE.exists():
         with open(SOURCE_FILE, "r", encoding="utf-8") as handle:
-            lines = handle.readlines()
-
-        for raw_line in lines:
-            parts = [part.strip() for part in raw_line.strip().split("\t")]
-            if len(parts) < 3:
-                continue
-
-            category_label = parts[0]
-            name = parts[1]
-            url = parts[2]
-            description = parts[3] if len(parts) > 3 else ""
-
-            category_id = resolve_category_id(category_label)
-            if not category_id:
-                continue
-
-            standard_id = STANDARD_FEED_IDS_BY_NAME.get(name)
-            feed_id = standard_id or slugify_feed_name(name)
-            standard = STANDARD_FEEDS_BY_ID.get(feed_id, {})
-            feeds.append(
-                {
+            for raw_line in handle:
+                parts = [part.strip() for part in raw_line.strip().split("\t")]
+                if len(parts) < 3:
+                    continue
+                category_label = parts[0]
+                name = parts[1]
+                url = parts[2]
+                description = parts[3] if len(parts) > 3 else ""
+                category_id = CATEGORY_LABEL_ALIASES.get(clean_text(category_label).strip())
+                if not category_id:
+                    continue
+                feed_id = re.sub(r"[^\w]+", "_", name.lower()).strip("_") or hashlib.md5(name.encode()).hexdigest()[:8]
+                feeds.append({
                     "id": feed_id,
-                    "name": standard.get("name", name),
-                    "url": standard.get("url", url),
-                    "category": standard.get("category", category_id),
-                    "description": standard.get("description", description),
-                    "fetch_mode": standard.get("fetch_mode", "rss"),
+                    "name": name,
+                    "url": url,
+                    "category": category_id,
+                    "description": description,
+                    "fetch_mode": "rss",
                     "last_fetched": None,
-                }
-            )
-
-    if not feeds:
-        feeds = [{**feed, "last_fetched": None} for feed in STANDARD_FEEDS]
+                })
 
     categories = build_categories({feed["category"] for feed in feeds})
     save_feeds({"categories": categories, "feeds": feeds})
 
 
-def normalize_saved_feeds():
+def validate_feeds():
+    """校验 feeds.json 中每条订阅源的字段完整性，重建分类。"""
     data = load_feeds()
     if not data.get("feeds"):
-        init_feeds_from_source()
         return
 
-    normalized_feeds = []
-    for feed in data.get("feeds", []):
-        existing = dict(feed)
-        original_feed_id = existing.get("id")
-        replacement_feed_id = STANDARD_FEED_REPLACEMENTS.get(original_feed_id)
-        feed_id = replacement_feed_id or original_feed_id or STANDARD_FEED_IDS_BY_NAME.get(existing.get("name", ""))
-        standard = STANDARD_FEEDS_BY_ID.get(feed_id, {})
-        last_fetched = None if replacement_feed_id else existing.get("last_fetched")
-
-        if standard:
-            normalized = {
-                **existing,
-                **standard,
-                "last_fetched": last_fetched,
-            }
-        else:
-            normalized = {
-                "id": existing.get("id") or slugify_feed_name(existing.get("name", "")),
-                "name": existing.get("name", "未命名订阅源"),
-                "url": existing.get("url", ""),
-                "category": existing.get("category", "developer"),
-                "description": existing.get("description", ""),
-                "fetch_mode": existing.get("fetch_mode", "rss"),
-                "last_fetched": last_fetched,
-            }
-
-        normalized_feeds.append(normalized)
-
-    categories = build_categories({feed["category"] for feed in normalized_feeds})
-    save_feeds({"categories": categories, "feeds": normalized_feeds})
+    valid_feeds = [
+        feed for feed in data["feeds"]
+        if feed.get("id") and feed.get("name") and feed.get("url") and feed.get("category")
+    ]
+    categories = build_categories({feed["category"] for feed in valid_feeds})
+    save_feeds({"categories": categories, "feeds": valid_feeds})
 
 
 def ensure_data_files():
@@ -561,159 +311,11 @@ def ensure_data_files():
     if not FEEDS_FILE.exists():
         init_feeds_from_source()
     else:
-        normalize_saved_feeds()
+        validate_feeds()
 
     for path in (ARTICLES_FILE, STATE_FILE):
         if not path.exists():
             path.touch()
-
-
-def is_disabled_feed(feed_id="", name="", url="", category=""):
-    normalized_url = clean_text(url).lower()
-    return (
-        clean_text(feed_id) in DISABLED_FEED_IDS
-        or clean_text(category) in DISABLED_CATEGORY_IDS
-        or any(keyword in normalized_url for keyword in DISABLED_FEED_URL_KEYWORDS)
-    )
-
-
-def prune_disabled_articles():
-    articles = load_articles()
-    filtered_articles = [article for article in articles if article.get("feed_id") not in DISABLED_FEED_IDS]
-    if len(filtered_articles) != len(articles):
-        save_articles(filtered_articles)
-
-
-def resolve_category_id(label):
-    normalized = clean_text(label)
-    for icon in ("🌐", "📚", "🛠️", "📰"):
-        normalized = normalized.lstrip(icon)
-    return CATEGORY_LABEL_ALIASES.get(normalized.strip())
-
-
-def build_categories(feed_category_ids):
-    categories = []
-    for category_id in CATEGORY_DEFINITIONS:
-        if category_id in feed_category_ids:
-            categories.append(CATEGORY_DEFINITIONS[category_id])
-    for category_id in feed_category_ids:
-        if category_id in DISABLED_CATEGORY_IDS:
-            continue
-        if category_id not in CATEGORY_DEFINITIONS:
-            categories.append({"id": category_id, "name": category_id, "icon": "📌"})
-    return categories
-
-
-def init_feeds_from_source():
-    feeds = []
-
-    if SOURCE_FILE.exists():
-        with open(SOURCE_FILE, "r", encoding="utf-8") as handle:
-            lines = handle.readlines()
-
-        for raw_line in lines:
-            parts = [part.strip() for part in raw_line.strip().split("\t")]
-            if len(parts) < 3:
-                continue
-
-            category_label = parts[0]
-            name = parts[1]
-            url = parts[2]
-            description = parts[3] if len(parts) > 3 else ""
-
-            category_id = resolve_category_id(category_label)
-            if not category_id:
-                continue
-
-            standard_id = STANDARD_FEED_IDS_BY_NAME.get(name)
-            feed_id = standard_id or slugify_feed_name(name)
-            standard = STANDARD_FEEDS_BY_ID.get(feed_id, {})
-            normalized_feed = {
-                "id": feed_id,
-                "name": standard.get("name", name),
-                "url": standard.get("url", url),
-                "category": standard.get("category", category_id),
-                "description": standard.get("description", description),
-                "fetch_mode": standard.get("fetch_mode", "rss"),
-                "last_fetched": None,
-            }
-            if is_disabled_feed(
-                feed_id=normalized_feed["id"],
-                name=normalized_feed["name"],
-                url=normalized_feed["url"],
-                category=normalized_feed["category"],
-            ):
-                continue
-            feeds.append(normalized_feed)
-
-    if not feeds:
-        feeds = [{**feed, "last_fetched": None} for feed in STANDARD_FEEDS]
-
-    categories = build_categories({feed["category"] for feed in feeds})
-    save_feeds({"categories": categories, "feeds": feeds})
-
-
-def normalize_saved_feeds():
-    data = load_feeds()
-    if not data.get("feeds"):
-        init_feeds_from_source()
-        return
-
-    normalized_feeds = []
-    for feed in data.get("feeds", []):
-        existing = dict(feed)
-        original_feed_id = existing.get("id")
-        replacement_feed_id = STANDARD_FEED_REPLACEMENTS.get(original_feed_id)
-        feed_id = replacement_feed_id or original_feed_id or STANDARD_FEED_IDS_BY_NAME.get(existing.get("name", ""))
-        standard = STANDARD_FEEDS_BY_ID.get(feed_id, {})
-        last_fetched = None if replacement_feed_id else existing.get("last_fetched")
-
-        if standard:
-            normalized = {
-                **existing,
-                **standard,
-                "last_fetched": last_fetched,
-            }
-        else:
-            normalized = {
-                "id": existing.get("id") or slugify_feed_name(existing.get("name", "")),
-                "name": existing.get("name", "未命名订阅源"),
-                "url": existing.get("url", ""),
-                "category": existing.get("category", "developer"),
-                "description": existing.get("description", ""),
-                "fetch_mode": existing.get("fetch_mode", "rss"),
-                "last_fetched": last_fetched,
-            }
-
-        if is_disabled_feed(
-            feed_id=normalized.get("id", ""),
-            name=normalized.get("name", ""),
-            url=normalized.get("url", ""),
-            category=normalized.get("category", ""),
-        ):
-            continue
-
-        normalized_feeds.append(normalized)
-
-    if not normalized_feeds:
-        normalized_feeds = [{**feed, "last_fetched": None} for feed in STANDARD_FEEDS]
-
-    categories = build_categories({feed["category"] for feed in normalized_feeds})
-    save_feeds({"categories": categories, "feeds": normalized_feeds})
-
-
-def ensure_data_files():
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not FEEDS_FILE.exists():
-        init_feeds_from_source()
-    else:
-        normalize_saved_feeds()
-
-    for path in (ARTICLES_FILE, STATE_FILE):
-        if not path.exists():
-            path.touch()
-
-    prune_disabled_articles()
 
 
 def get_full_stats():

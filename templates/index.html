@@ -311,14 +311,14 @@
         .articles-view {
             height: 100%;
             overflow-y: auto;
-            padding: 24px;
+            padding: 32px;
         }
 
         .view-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
         .view-title {
@@ -335,15 +335,9 @@
         /* ===== 文章网格布局 ===== */
         .articles-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 22px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
             padding-bottom: 40px;
-        }
-
-        @media (min-width: 1400px) {
-            .articles-grid {
-                grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-            }
         }
 
         @media (max-width: 1024px) {
@@ -356,13 +350,13 @@
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
-            min-height: 260px;
+            min-height: 340px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
             display: grid;
-            grid-template-columns: 150px 1fr;
+            grid-template-columns: 200px 1fr;
         }
 
         .article-card:hover {
@@ -393,7 +387,7 @@
         .article-image {
             width: 100%;
             height: 100%;
-            min-height: 260px;
+            min-height: 340px;
             object-fit: cover;
             display: block;
         }
@@ -401,7 +395,7 @@
         .article-image-placeholder {
             width: 100%;
             height: 100%;
-            min-height: 260px;
+            min-height: 340px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -414,7 +408,7 @@
         }
 
         .article-body {
-            padding: 20px;
+            padding: 28px;
             min-width: 0;
             display: flex;
             flex-direction: column;
@@ -480,23 +474,23 @@
         }
 
         .article-title {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: 600;
             line-height: 1.45;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             color: var(--text-primary);
         }
 
         .article-summary {
-            font-size: 14px;
+            font-size: 16px;
             color: var(--text-secondary);
-            line-height: 1.6;
+            line-height: 1.7;
             display: -webkit-box;
-            -webkit-line-clamp: 5;
+            -webkit-line-clamp: 8;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-bottom: 16px;
@@ -524,8 +518,8 @@
 
             .article-image,
             .article-image-placeholder {
-                min-height: 180px;
-                height: 180px;
+                min-height: 200px;
+                height: 200px;
             }
         }
 
@@ -964,8 +958,7 @@
     </div>
 
     <script>
-        // 状态管理
-        let state = {
+        state = {
             articles: [],
             feeds: [],
             categories: [],
@@ -974,157 +967,37 @@
             searchQuery: '',
             page: 1,
             loading: false,
-            theme: localStorage.getItem('theme') || 'dark'
+            theme: localStorage.getItem('theme') || 'dark',
+            stats: {
+                base: { total: 0, unread: 0, starred: 0 },
+                categories: [],
+                feeds: []
+            },
+            perPage: 50,
+            totalAvailable: 0
         };
 
-        // 初始化主题
+        // ===== Preserved functions from first script block =====
+
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-
             document.documentElement.setAttribute('data-theme', theme);
             state.theme = theme;
         }
 
-        // 切换主题
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             state.theme = newTheme;
-
             showToast(`已切换到${newTheme === 'dark' ? '深色' : '浅色'}主题`);
         }
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            loadFeeds();
-            loadArticles();
-
-            // 键盘快捷键
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeReader();
-                if (e.key === 'r' && e.ctrlKey) {
-                    e.preventDefault();
-                    refreshFeeds();
-                }
-                if (e.key === 't' && e.ctrlKey) {
-                    e.preventDefault();
-                    toggleTheme();
-                }
-            });
-        });
-
-        // 加载订阅源
-        async function loadFeeds() {
-            try {
-                const response = await fetch('/api/feeds');
-                const data = await response.json();
-                state.feeds = data.feeds || [];
-                state.categories = data.categories || [];
-                renderSidebar();
-            } catch (error) {
-                showToast('加载订阅源失败', 'error');
-            }
-        }
-
-        // 替换原有的 loadArticles 函数
-        async function loadArticles() {
-            if (state.loading) return;
-            state.loading = true;
-
-            try {
-                let url = `/api/articles?page=${state.page}&per_page=50`;
-
-                // 处理各种过滤条件
-                if (state.currentFilter === 'unread') {
-                    url += '&unread=true';
-                } else if (state.currentFilter === 'starred') {
-                    url += '&starred=true';
-                } else if (state.currentFilter.startsWith('category:')) {
-                    const categoryId = state.currentFilter.replace('category:', '');
-                    url += `&category=${encodeURIComponent(categoryId)}`;
-                } else if (state.currentFilter.startsWith('feed:')) {
-                    const feedId = state.currentFilter.replace('feed:', '');
-                    url += `&feed_id=${encodeURIComponent(feedId)}`;
-                }
-
-                if (state.searchQuery) {
-                    url += `&search=${encodeURIComponent(state.searchQuery)}`;
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (state.page === 1) {
-                    state.articles = data.articles || [];
-                } else {
-                    state.articles.push(...(data.articles || []));
-                }
-
-                updateCounts();
-                renderArticles();
-            } catch (error) {
-                showToast('加载文章失败', 'error');
-            } finally {
-                state.loading = false;
-            }
-        }
-        <!-- --- 在 index.html 的 <script> 标签内找到并替换 renderSidebar 函数 --- -->
-
-        // 渲染侧边栏 (修复计数和分类显示)
-        async function renderSidebar() {
-            const catSection = document.getElementById('categories-section');
-            const feedsSection = document.getElementById('feeds-section');
-
-            let stats = { categories: [], feeds: [] };
-            try {
-                const res = await fetch('/api/stats');
-                const data = await res.json();
-                stats = data;
-            } catch (e) { console.error("获取统计失败", e); }
-
-            // 渲染分类
-            let catHtml = '<div class="nav-title">分类</div>';
-            stats.categories.forEach(cat => {
-                const isActive = state.currentFilter === 'category:' + cat.id;
-                catHtml += ` 
-        <div class="nav-item ${isActive ? 'active' : ''}" onclick="filterByCategory('${cat.id}')" title="点击筛选该分类">
-            <span class="nav-icon">${cat.icon}</span>
-            <span>${cat.name}</span>
-            <span class="nav-count">${cat.unread}</span>
-        </div> `;
-            });
-            catSection.innerHTML = catHtml;
-
-            // 渲染订阅源
-            let feedsHtml = '<div class="nav-title">订阅源</div>';
-            stats.feeds.forEach(feed => {
-                const isActive = state.currentFilter === 'feed:' + feed.id;
-                feedsHtml += ` 
-        <div class="nav-item ${isActive ? 'active' : ''}" onclick="filterByFeed('${feed.id}')" title="点击筛选该订阅源" style="font-size: 13px;">
-            <span style="margin-left: 8px;">${feed.name}</span>
-            <span class="nav-count">${feed.unread}</span>
-        </div> `;
-            });
-            feedsSection.innerHTML = feedsHtml;
-        }
-
-        // --- 在 script 标签内新增一个函数 (用于显示网址) ---
-        function showFeedUrl(name, url) {
-            if (url) {
-                alert(`订阅源: ${name}\n地址: ${url}`);
-            }
-        }
-
-        // 渲染文章列表
         function renderArticles() {
             const grid = document.getElementById('articlesGrid');
-
             if (state.articles.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
@@ -1135,9 +1008,8 @@
                 `;
                 return;
             }
-
             grid.innerHTML = state.articles.map(article => `
-                <article class="article-card ${article.read ? 'read' : 'unread'}" 
+                <article class="article-card ${article.read ? 'read' : 'unread'}"
                          onclick="openArticle('${article.id}')"
                          data-id="${article.id}">
                     <div class="article-image-wrap">
@@ -1150,7 +1022,7 @@
                                 <span class="article-date">${formatDate(article.published)}</span>
                             </div>
                             <div class="article-actions" onclick="event.stopPropagation()">
-                                <button class="icon-btn ${article.starred ? 'starred' : ''}" 
+                                <button class="icon-btn ${article.starred ? 'starred' : ''}"
                                         onclick="toggleStar('${article.id}', event)"
                                         title="${article.starred ? '取消收藏' : '收藏'}">
                                     ${article.starred ? '★' : '☆'}
@@ -1184,33 +1056,24 @@
             return node;
         }
 
-        // 打开文章
         async function openArticle(articleId) {
             const article = state.articles.find(a => a.id === articleId);
             if (!article) return;
-
             state.currentArticle = article;
             window.open(article.link, '_blank', 'noopener,noreferrer');
-
-            // 标记为已读
             if (!article.read) {
                 await markAsRead(articleId, { silent: true });
             }
         }
 
-        // 关闭阅读器 - 渐隐动画
         function closeReader() {
             const overlay = document.getElementById('readerOverlay');
             overlay.classList.remove('active');
             overlay.classList.add('closing');
-
             document.body.style.overflow = '';
-
-            // 延迟清空 iframe
             setTimeout(() => {
                 document.getElementById('readerIframe').src = 'about:blank';
                 overlay.classList.remove('closing');
-                // 恢复加载界面以备下次使用
                 document.getElementById('readerContent').innerHTML = `
                     <div class="reader-loading" id="readerLoading">
                         <div class="reader-spinner"></div>
@@ -1221,14 +1084,12 @@
             }, 400);
         }
 
-        // 在新标签页打开
         function openInNewTab() {
             if (state.currentArticle) {
                 window.open(state.currentArticle.link, '_blank');
             }
         }
 
-        // 标记当前文章已读
         async function markCurrentRead() {
             if (state.currentArticle) {
                 await markAsRead(state.currentArticle.id);
@@ -1236,7 +1097,6 @@
             }
         }
 
-        // 切换当前文章收藏
         async function toggleCurrentStar() {
             if (state.currentArticle) {
                 await toggleStar(state.currentArticle.id);
@@ -1246,215 +1106,6 @@
                     <span>${article.starred ? '已收藏' : '收藏'}</span>
                 `;
             }
-        }
-
-        // 筛选功能
-        function filterArticles(filter) {
-            state.currentFilter = filter;
-            state.page = 1;
-            state.searchQuery = '';
-            document.getElementById('searchInput').value = '';
-
-            // 更新导航状态
-            document.querySelectorAll('.nav-item[data-filter]').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.filter === filter) {
-                    item.classList.add('active');
-                }
-            });
-
-            // 重新渲染侧边栏以清除分类/订阅源的激活状态
-            renderSidebar();
-
-            const titles = {
-                'all': '全部文章',
-                'unread': '未读文章',
-                'starred': '收藏文章'
-            };
-            document.getElementById('viewTitle').textContent = titles[filter];
-
-            loadArticles();
-        }
-
-        function filterByCategory(categoryId) {
-            state.currentFilter = 'category:' + categoryId;
-            state.page = 1;
-            state.searchQuery = '';
-            document.getElementById('searchInput').value = '';
-
-            // 更新标题
-            const category = state.categories.find(c => c.id === categoryId);
-            document.getElementById('viewTitle').textContent = category ? category.name : '分类';
-
-            // 更新导航激活状态
-            updateNavActiveState('category:' + categoryId);
-
-            loadArticles();
-        }
-
-        function filterByFeed(feedId) {
-            state.currentFilter = 'feed:' + feedId;
-            state.page = 1;
-            state.searchQuery = '';
-            document.getElementById('searchInput').value = '';
-
-            // 更新标题
-            const feed = state.feeds.find(f => f.id === feedId);
-            document.getElementById('viewTitle').textContent = feed ? feed.name : '订阅源';
-
-            // 更新导航激活状态
-            updateNavActiveState('feed:' + feedId);
-
-            loadArticles();
-        }
-
-        // 新增：统一更新导航激活状态
-        function updateNavActiveState(filterValue) {
-            // 清除所有激活状态
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // 根据 filter 值找到对应的元素并激活
-            if (filterValue === 'all') {
-                document.querySelector('[data-filter="all"]')?.classList.add('active');
-            } else if (filterValue === 'unread') {
-                document.querySelector('[data-filter="unread"]')?.classList.add('active');
-            } else if (filterValue === 'starred') {
-                document.querySelector('[data-filter="starred"]')?.classList.add('active');
-            }
-            // 分类和订阅源的激活状态通过 onclick 动态处理，这里不需要额外操作
-            // 因为每次 renderSidebar 都会重新生成 DOM
-        }
-
-        // 搜索
-        function handleSearch(event) {
-            if (event.key === 'Enter') {
-                state.searchQuery = event.target.value;
-                state.page = 1;
-                loadArticles();
-            }
-        }
-
-        // API 操作
-        async function markAsRead(articleId) {
-            try {
-                await fetch(`/api/articles/${articleId}/read`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ read: true })
-                });
-
-                const article = state.articles.find(a => a.id === articleId);
-                if (article) {
-                    article.read = true;
-                    renderArticles();
-                    updateCounts();
-                }
-            } catch (error) {
-                console.error('标记已读失败:', error);
-            }
-        }
-
-        async function toggleStar(articleId, event) {
-            if (event) event.stopPropagation();
-
-            const article = state.articles.find(a => a.id === articleId);
-            if (!article) return;
-
-            try {
-                const response = await fetch(`/api/articles/${articleId}/star`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ starred: !article.starred })
-                });
-
-                article.starred = !article.starred;
-                renderArticles();
-                updateCounts();
-                showToast(article.starred ? '已收藏' : '已取消收藏');
-            } catch (error) {
-                showToast('操作失败', 'error');
-            }
-        }
-
-        async function markAllRead() {
-            try {
-                await fetch('/api/articles/mark-all-read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                state.articles.forEach(a => a.read = true);
-                renderArticles();
-                updateCounts();
-                showToast('全部标记为已读');
-            } catch (error) {
-                showToast('操作失败', 'error');
-            }
-        }
-
-        async function refreshFeeds() {
-            showToast('正在刷新...');
-            try {
-                const response = await fetch('/api/feeds/refresh', {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                showToast(`新增 ${data.new_articles || 0} 篇文章`);
-                loadArticles();
-            } catch (error) {
-                showToast('刷新失败', 'error');
-            }
-        }
-
-        // 辅助函数
-        function updateCounts() {
-            const all = state.articles.length;
-            const unread = state.articles.filter(a => !a.read).length;
-            const starred = state.articles.filter(a => a.starred).length;
-
-            document.getElementById('count-all').textContent = all;
-            document.getElementById('count-unread').textContent = unread;
-            document.getElementById('count-starred').textContent = starred;
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) return '刚刚';
-            if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
-            if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
-            if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`;
-
-            return date.toLocaleDateString('zh-CN');
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function escapeAttribute(text) {
-            return escapeHtml(text).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            const msg = document.getElementById('toastMessage');
-
-            msg.textContent = message;
-            icon.textContent = type === 'success' ? '✓' : '✕';
-            toast.className = `toast ${type} show`;
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
         }
 
         function shareArticle() {
@@ -1467,27 +1118,6 @@
         function changeLayout() {
             showToast('布局切换功能开发中...');
         }
-
-        // 无限滚动
-        document.getElementById('articlesView').addEventListener('scroll', (e) => {
-            const { scrollTop, scrollHeight, clientHeight } = e.target;
-            if (scrollTop + clientHeight >= scrollHeight - 100 && !state.loading) {
-                state.page++;
-                loadArticles();
-            }
-        });
-    </script>
-    <script>
-        state = {
-            ...state,
-            stats: {
-                base: { total: 0, unread: 0, starred: 0 },
-                categories: [],
-                feeds: []
-            },
-            perPage: 50,
-            totalAvailable: 0
-        };
 
         async function fetchJson(url, options = {}) {
             const response = await fetch(url, options);
@@ -1892,9 +1522,23 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            initTheme();
             await loadFeeds();
             setViewTitle();
             await loadArticles({ reset: true });
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeReader();
+            if (e.key === 'r' && e.ctrlKey) {
+                e.preventDefault();
+                refreshFeeds();
+            }
+            if (e.key === 't' && e.ctrlKey) {
+                e.preventDefault();
+                toggleTheme();
+            }
         });
 
         document.getElementById('articlesView').addEventListener('scroll', event => {
